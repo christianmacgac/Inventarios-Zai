@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Inventario de la boutique</title>
+<style>
+:root{--bg:#fbf6ef;--card:#fffdf9;--ink:#4a3a32;--mut:#76645a;--rose:#d9a9a6;--rd:#8f5559;--beige:#eadfce;--brown:#a98467;--bad:#a8473f;--r:18px}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;padding-bottom:84px}
+h1,h2,h3{font-family:Georgia,"Times New Roman",serif;font-weight:600;margin:0 0 .5rem}
+header{max-width:1000px;margin:auto;padding:20px 16px 6px}
+header h1{font-size:1.9rem;font-style:italic;color:var(--rd);margin:0}
+header p{margin:0;color:var(--mut);font-size:.9rem}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;overflow-x:auto;background:var(--card);border-top:1px solid var(--beige);z-index:5;padding:6px}
+nav button{flex:1;min-width:66px;min-height:52px;background:none;border:0;border-radius:14px;color:var(--mut);font:inherit;font-size:.7rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button span{font-size:1.2rem}
+nav button[aria-current=page]{background:var(--beige);color:var(--rd);font-weight:700}
+main{max-width:1000px;margin:auto;padding:8px 16px 24px;animation:in .3s}
+@keyframes in{from{opacity:0;transform:translateY(6px)}}
+.card{background:var(--card);border-radius:var(--r);box-shadow:0 2px 14px #6b4f3a14;padding:16px;margin-bottom:16px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+.kpis .card{margin:0}
+.kpi b{display:block;font:600 1.7rem Georgia,serif;color:var(--rd)}
+.kpi small{color:var(--mut)}
+.btn{min-height:44px;padding:0 18px;border:0;border-radius:999px;background:var(--rd);color:#fff;font:inherit;font-weight:600;cursor:pointer}
+.btn.ghost{background:var(--beige);color:var(--ink)}
+.btn.sm{min-height:40px;padding:0 12px}
+.btn.bad{background:var(--bad);color:#fff}
+.btn:disabled{opacity:.5}
+:focus-visible{outline:3px solid var(--brown);outline-offset:2px}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin-bottom:14px}
+label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--mut);font-weight:600}
+label.chk{flex-direction:row;align-items:center;gap:8px;min-height:44px}
+input,select{min-height:44px;padding:0 12px;border:1px solid #d8c8b4;border-radius:12px;background:#fff;font:inherit;color:var(--ink);max-width:100%}
+input[type=checkbox]{min-height:22px;width:22px}
+dialog{border:0;border-radius:22px;padding:20px;width:min(94vw,440px);box-shadow:0 10px 40px #0004;background:var(--card);color:var(--ink)}
+dialog::backdrop{background:#4a3a3299}
+dialog label{margin-bottom:10px}
+.row{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:.8rem;color:var(--mut);padding:8px;border-bottom:2px solid var(--beige)}
+td{padding:10px 8px;border-bottom:1px solid var(--beige);vertical-align:middle}
+.tag{padding:2px 10px;border-radius:99px;font-size:.78rem;font-weight:600;background:var(--beige)}
+.tag.low{background:#fbe8c8;color:#7a4b0a}
+.tag.out{background:#f6d6d2;color:#8a2f28}
+.bar{display:grid;grid-template-columns:130px 1fr 34px;gap:8px;align-items:center;margin:6px 0}
+.bar em{height:12px;background:var(--beige);border-radius:9px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--rose);transition:width .4s}
+.empty{padding:28px;text-align:center;color:var(--mut)}
+.note{color:var(--mut);font-size:.88rem}
+.err{color:var(--bad);font-weight:600;margin:0}
+.qty{display:inline-flex;align-items:center;gap:8px}
+#toast{position:fixed;left:50%;bottom:92px;transform:translate(-50%,20px);background:var(--ink);color:#fff;padding:12px 18px;border-radius:14px;opacity:0;pointer-events:none;transition:.3s;z-index:20;max-width:90vw}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+#toast.err{background:var(--bad)}
+@media(min-width:760px){nav{position:static;max-width:1000px;margin:0 auto;border:0;background:none;padding:0 16px;overflow:visible}nav button{flex:none;flex-direction:row;font-size:.95rem;gap:6px;padding:8px 14px}body{padding-bottom:0}#toast{bottom:24px}}
+@media(max-width:700px){thead{display:none}tr{display:block;margin-bottom:12px;border-radius:14px;box-shadow:0 1px 8px #6b4f3a1f;padding:6px;background:#fff}td{display:flex;justify-content:space-between;align-items:center;gap:12px;border:0;padding:6px 8px;text-align:right}td::before{content:attr(data-l);color:var(--mut);font-size:.8rem;font-weight:600;text-align:left}.bar{grid-template-columns:96px 1fr 30px}}
+#print{display:none}
+@media print{body>:not(#print){display:none!important}#print{display:block}body{background:#fff;padding:0}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head>
+<body>
+<header><h1>Mi boutique</h1><p>Inventario de ropa</p></header>
+<nav id="nav" aria-label="Secciones"></nav>
+<main id="app"></main>
+<div id="toast" role="status" aria-live="polite"></div>
+<dialog id="dlg" aria-label="Formulario"></dialog>
+<input type="file" id="file" accept=".json,application/json" hidden>
+<div id="print"></div>
+<script>
+'use strict';
+/* ===== Constantes ===== */
+const KEY='inventarioBoutique.v1',SZ=['CH','MD','GR'],SZN={CH:'Chica',MD:'Mediana',GR:'Grande'},
+COLORS=['Beige','Negra','Rosa','Morada','Café oscuro','Café claro','Azul marino','Azul oscuro','Color sin especificar'],
+CATS0=['Blusas','Chamarras','Mallas acampanadas','Mallas pegadas'],
+TL={entrada:'Entrada',salida:'Salida',devolucion:'Devolución',ajuste:'Ajuste'},
+NOTE='<p class="note">Tus datos se guardan solo en este navegador de este dispositivo (localStorage). No se sincronizan solos entre celulares o computadoras: para pasarlos a otro dispositivo usa «Exportar respaldo» e «Importar respaldo».</p>';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const money=n=>n==null?'Sin datos':n.toLocaleString('es-MX',{style:'currency',currency:'MXN'});
+const fmt=t=>new Date(t).toLocaleString('es-MX',{dateStyle:'short',timeStyle:'short'});
+const day=t=>new Date(t).toLocaleDateString('sv-SE');
+const nowL=()=>new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,16);
+const num=v=>{v=String(v).trim();if(v==='')return null;const n=Number(v);return isNaN(n)||n<0?false:n};
+
+/* ===== Estado único (fuente de verdad) ===== */
+let S,storageOK=true;
+const U={view:'home',f:{q:'',cat:'',size:'',color:'',sort:'name',low:false},mf:{item:'',type:'',from:'',to:''},sf:{from:'',to:''},rep:'cat'};
+
+function seed(){
+  const D={'Blusas':[['CH','Beige',1],['CH','Negra',1],['MD','Color sin especificar',2],['MD','Azul oscuro',1],['GR','Morada',1]],
+  'Chamarras':[['CH','Rosa',1],['CH','Negra',2],['MD','Negra',2],['GR','Negra',1]],
+  'Mallas acampanadas':[['CH','Café oscuro',1],['CH','Café claro',1],['MD','Negra',1],['MD','Café claro',1],['MD','Azul marino',1],['GR','Café claro',1],['GR','Café oscuro',1]],
+  'Mallas pegadas':[['CH','Café oscuro',1],['CH','Negra',1],['CH','Azul marino',1],['MD','Café oscuro',1],['MD','Morada',1],['MD','Azul oscuro',1],['GR','Azul oscuro',1],['GR','Café oscuro',1]]};
+  const items=[];
+  for(const c in D)for(const[size,color,qty]of D[c])items.push({id:uid(),name:c,cat:c,size,color,qty,cost:null,price:null});
+  return{v:1,items,moves:[],sales:[],settings:{low:2}};
+}
+// Valida la estructura de datos (se usa al cargar y al importar)
+function valid(d){
+  const o=x=>x&&typeof x==='object'&&!Array.isArray(x),n=x=>x==null||(typeof x==='number'&&x>=0);
+  return !!(o(d)&&d.v===1&&Array.isArray(d.items)&&Array.isArray(d.moves)&&Array.isArray(d.sales)&&o(d.settings)&&Number.isInteger(d.settings.low)&&d.settings.low>=0
+  &&d.items.every(i=>o(i)&&['id','name','cat','size','color'].every(k=>typeof i[k]==='string')&&Number.isInteger(i.qty)&&i.qty>=0&&n(i.cost)&&n(i.price))
+  &&d.moves.every(m=>o(m)&&typeof m.t==='string'&&typeof m.type==='string'&&[m.before,m.delta,m.after].every(Number.isFinite))
+  &&d.sales.every(s=>o(s)&&typeof s.t==='string'&&Number.isInteger(s.qty)&&n(s.price)&&n(s.cost)));
+}
+function load(){
+  try{const r=localStorage.getItem(KEY);
+    if(r){try{const d=JSON.parse(r);if(valid(d))return d}catch(_){}
+      localStorage.setItem(KEY+'.corrupto',r)} // conserva una copia si los datos estaban dañados
+  }catch(e){storageOK=false}
+  return seed();
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){storageOK=false;toast('No se pudo guardar en este navegador. Exporta un respaldo.','err')}}
+
+/* ===== Lógica de inventario ===== */
+const cats=()=>[...new Set([...CATS0,...S.items.map(i=>i.cat)])];
+const label=i=>`${i.name} · ${i.size} · ${i.color}`;
+const total=()=>S.items.reduce((a,i)=>a+i.qty,0);
+const sm=()=>[...S.moves].sort((a,b)=>b.t.localeCompare(a.t));
+const group=k=>{const m={};S.items.forEach(i=>m[i[k]]=(m[i[k]]||0)+i.qty);return Object.entries(m)};
+const status=i=>i.qty===0?'<span class="tag out">Agotado</span>':i.qty<=S.settings.low?'<span class="tag low">Poco stock</span>':'<span class="tag">Disponible</span>';
+
+// Único punto que cambia existencias. Devuelve null si todo salió bien o un texto de error (sin tocar nada).
+function move(id,type,q,note,adj,t){
+  const it=S.items.find(i=>i.id===id);if(!it)return'Producto no encontrado';
+  if(!TL[type])return'Tipo de movimiento inválido';
+  q=Number(q);if(!Number.isInteger(q))return'La cantidad debe ser un número entero';
+  let d;
+  if(type==='ajuste'&&adj==='final'){if(q<0)return'La cantidad final no puede ser negativa';d=q-it.qty}
+  else if(type==='ajuste')d=q;
+  else{if(q<=0)return'La cantidad debe ser mayor a 0';d=type==='salida'?-q:q}
+  if(d===0)return'Ese movimiento no cambia las existencias';
+  if(it.qty+d<0)return`No hay suficientes existencias (disponibles: ${it.qty})`;
+  const before=it.qty;it.qty+=d;
+  S.moves.unshift({id:uid(),t:t||new Date().toISOString(),itemId:id,desc:label(it),type,before,delta:d,after:it.qty,note:note||''});
+  return null;
+}
+function filtered(){
+  const f=U.f,q=f.q.trim().toLowerCase();
+  const r=S.items.filter(i=>(!q||`${i.name} ${i.cat} ${i.color}`.toLowerCase().includes(q))&&(!f.cat||i.cat===f.cat)&&(!f.size||i.size===f.size)&&(!f.color||i.color===f.color)&&(!f.low||i.qty<=S.settings.low));
+  const k=f.sort;
+  return r.sort((a,b)=>k==='qty'?a.qty-b.qty:k==='size'?SZ.indexOf(a.size)-SZ.indexOf(b.size):String(a[k]).localeCompare(b[k],'es'));
+}
+function sumSales(a){
+  const rv=a.filter(s=>s.price!=null),cs=a.filter(s=>s.cost!=null),bo=a.filter(s=>s.price!=null&&s.cost!=null);
+  return{u:a.reduce((x,s)=>x+s.qty,0),
+    ing:rv.length?rv.reduce((x,s)=>x+s.price*s.qty,0):null,
+    cost:cs.length?cs.reduce((x,s)=>x+s.cost*s.qty,0):null,
+    mar:bo.length?bo.reduce((x,s)=>x+(s.price-s.cost)*s.qty,0):null};
+}
+
+/* ===== Reportes (filas en texto plano; se escapan al mostrar) ===== */
+const R={
+ cat:['Existencias por categoría',['Categoría','Prendas'],()=>group('cat')],
+ size:['Existencias por talla',['Talla','Prendas'],()=>group('size')],
+ color:['Existencias por color',['Color','Prendas'],()=>group('color')],
+ out:['Productos agotados',['Producto','Categoría','Talla','Color'],()=>S.items.filter(i=>!i.qty).map(i=>[i.name,i.cat,i.size,i.color])],
+ low:['Productos con existencias bajas',['Producto','Categoría','Talla','Color','Cantidad'],()=>S.items.filter(i=>i.qty>0&&i.qty<=S.settings.low).map(i=>[i.name,i.cat,i.size,i.color,i.qty])],
+ hist:['Historial de entradas y salidas',['Fecha','Tipo','Producto','Antes','Cambio','Después','Motivo'],()=>sm().map(m=>[fmt(m.t),TL[m.type]||m.type,m.desc||'',m.before,m.delta,m.after,m.note||''])],
+ sales:['Ventas por mes',['Mes','Prendas','Ingresos por ventas','Costo de mercancía','Margen bruto'],()=>{const m={};S.sales.forEach(s=>(m[day(s.t).slice(0,7)]??=[]).push(s));return Object.entries(m).sort().map(([k,a])=>{const x=sumSales(a);return[k,x.u,money(x.ing),money(x.cost),money(x.mar)]})}],
+ val:['Valor del inventario al costo',['Producto','Talla','Color','Cantidad','Costo unitario','Valor'],()=>S.items.filter(i=>i.cost!=null).map(i=>[i.name,i.size,i.color,i.qty,money(i.cost),money(i.cost*i.qty)])]
+};
+
+/* ===== Utilidades de interfaz ===== */
+let tt;function toast(m,c){const t=$('#toast');t.textContent=m;t.className='show '+(c||'');clearTimeout(tt);tt=setTimeout(()=>t.className='',3200)}
+const F=(l,n,v,x='')=>`<label>${l}<input name="${n}" value="${esc(v)}" ${x}></label>`;
+const SEL=(l,n,list,cur,x='')=>`<label>${l}<select name="${n}" ${x}>${list.map(o=>{const[v,t]=Array.isArray(o)?o:[o,o];return`<option value="${esc(v)}"${v==cur?' selected':''}>${esc(t)}</option>`}).join('')}</select></label>`;
+const ab=(a,id,t,c='ghost sm',x='')=>`<button class="btn ${c}" data-a="${a}" data-id="${id}" ${x}>${t}</button>`;
+const kpi=(l,v)=>`<div class="card kpi"><b>${v}</b><small>${l}</small></div>`;
+const T=(h,r,empty)=>r.length?`<div class="card"><table><thead><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${r.map(c=>`<tr>${c.map((x,i)=>`<td data-l="${h[i]}">${x}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`:`<div class="card empty">${empty}</div>`;
+const bars=e=>{const mx=Math.max(1,...e.map(x=>x[1]));return e.map(([l,v])=>`<div class="bar"><span>${esc(l)}</span><em><i style="width:${v/mx*100}%"></i></em><b>${v}</b></div>`).join('')||'<div class="empty">Sin datos</div>'};
+const dl=(name,text,type)=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500)};
+const csv=(h,r)=>'\uFEFF'+[h,...r].map(l=>l.map(c=>{c=String(c??'');return/[",\n;]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c}).join(',')).join('\r\n');
+
+// Ventana de formulario. fn recibe los datos y devuelve null (éxito) o un texto de error.
+const dlg=$('#dlg');
+function modal(title,body,fn){
+  dlg.innerHTML=`<form id="mf"><h2>${title}</h2>${body}<p class="err" id="err" role="alert"></p><div class="row"><button type="button" class="btn ghost" data-a="close">${fn?'Cancelar':'Cerrar'}</button>${fn?'<button class="btn" id="ok">Guardar</button>':''}</div></form>`;
+  $('#mf').onsubmit=e=>{e.preventDefault();if(!fn)return;const ok=$('#ok');if(ok.disabled)return;
+    const err=fn(new FormData(e.target));
+    if(err){$('#err').textContent=err;return}
+    ok.disabled=true;dlg.close();save();render();toast('Guardado ✓')};
+  dlg.showModal();
+}
+
+/* ===== Formularios ===== */
+function itemForm(it){
+  const e=it||{name:'',cat:'',size:'CH',color:'Beige',qty:1,cost:'',price:''};
+  modal(it?'Editar prenda':'Agregar prenda',
+    F('Categoría','cat',e.cat,'list="cl" required maxlength="40"')+`<datalist id="cl">${cats().map(c=>`<option value="${esc(c)}">`).join('')}</datalist>`+
+    F('Nombre (si lo dejas vacío usa la categoría)','name',e.name!==e.cat?e.name:'','maxlength="60"')+
+    SEL('Talla','size',SZ,e.size)+SEL('Color','color',COLORS,e.color)+
+    F('Cantidad','qty',e.qty,'type="number" min="0" step="1" required inputmode="numeric"')+
+    F('Costo de compra unitario (opcional)','cost',e.cost??'','type="number" min="0" step="0.01"')+
+    F('Precio de venta unitario (opcional)','price',e.price??'','type="number" min="0" step="0.01"'),
+  fd=>{
+    const cat=fd.get('cat').trim(),name=fd.get('name').trim()||cat,size=fd.get('size'),color=fd.get('color'),qs=fd.get('qty').trim(),qty=Number(qs),cost=num(fd.get('cost')),price=num(fd.get('price'));
+    if(!cat)return'La categoría es obligatoria';
+    if(qs===''||!Number.isInteger(qty)||qty<0)return'La cantidad debe ser un número entero de 0 o más';
+    if(cost===false||price===false)return'El costo y el precio no pueden ser negativos';
+    const dup=S.items.find(i=>i.id!==it?.id&&i.cat.toLowerCase()===cat.toLowerCase()&&i.size===size&&i.color===color);
+    if(dup){
+      if(it)return'Ya existe un registro con esa categoría, talla y color';
+      if(!confirm('Ya existe esa combinación. ¿Quieres sumar las unidades al registro existente en lugar de duplicarlo?'))return'No se creó el registro duplicado';
+      if(qty<1)return'Escribe una cantidad mayor a 0 para sumar';
+      return move(dup.id,'entrada',qty,'Suma al agregar prenda');
+    }
+    if(it){Object.assign(it,{name,cat,size,color,cost,price});if(qty!==it.qty)move(it.id,'ajuste',qty,'Edición del registro','final')}
+    else{const n={id:uid(),name,cat,size,color,qty:0,cost,price};S.items.push(n);if(qty)move(n.id,'entrada',qty,'Alta de prenda')}
+    return null;
+  });
+}
+function moveForm(){
+  if(!S.items.length)return toast('Primero agrega prendas al inventario','err');
+  modal('Registrar movimiento',
+    SEL('Producto y variante','item',S.items.map(i=>[i.id,`${label(i)} (hay ${i.qty})`]),'')+
+    SEL('Tipo','type',Object.entries(TL),'entrada')+
+    F('Cantidad','qty','','type="number" step="1" required inputmode="numeric"')+
+    SEL('Solo para ajustes: la cantidad es…','adj',[['final','La cantidad final'],['diff','Una diferencia (+ o −)']],'final')+
+    F('Fecha y hora','t',nowL(),'type="datetime-local"')+
+    F('Motivo u observaciones','note','','maxlength="120"'),
+  fd=>{
+    if(fd.get('qty').trim()==='')return'Indica la cantidad';
+    const d=fd.get('t')?new Date(fd.get('t')):new Date();if(isNaN(d))return'La fecha no es válida';
+    return move(fd.get('item'),fd.get('type'),fd.get('qty'),fd.get('note').trim(),fd.get('adj'),d.toISOString());
+  });
+}
+function saleForm(){
+  const av=S.items.filter(i=>i.qty>0);if(!av.length)return toast('No hay prendas disponibles para vender','err');
+  modal('Registrar venta',
+    SEL('Prenda','item',av.map(i=>[i.id,`${label(i)} (hay ${i.qty})`]),'')+
+    F('Cantidad','qty',1,'type="number" min="1" step="1" required inputmode="numeric"')+
+    F('Precio de venta unitario (si lo dejas vacío usa el precio registrado)','price','','type="number" min="0" step="0.01"'),
+  fd=>{
+    const it=S.items.find(i=>i.id===fd.get('item')),p=num(fd.get('price'));
+    if(!it)return'Prenda no encontrada';
+    if(p===false)return'El precio no puede ser negativo';
+    const q=Number(fd.get('qty')),e=move(it.id,'salida',q,'Venta');if(e)return e;
+    S.sales.unshift({id:uid(),t:new Date().toISOString(),itemId:it.id,desc:label(it),qty:q,price:p??it.price??null,cost:it.cost??null});
+    return null;
+  });
+}
+function detail(it){
+  const ms=sm().filter(m=>m.itemId===it.id).slice(0,5).map(m=>`<li>${fmt(m.t)}: ${esc(TL[m.type]||m.type)} (${m.delta>0?'+':''}${m.delta}) → ${m.after}</li>`).join('');
+  modal(esc(it.name),`<p>${esc(it.cat)}, talla ${SZN[it.size]||''} (${esc(it.size)}), color ${esc(it.color)}</p><p><b>${it.qty}</b> en existencia ${status(it)}</p><p>Costo: ${money(it.cost)}. Precio: ${money(it.price)}.</p><h3>Últimos movimientos</h3>${ms?`<ul>${ms}</ul>`:'<p class="note">Sin movimientos todavía.</p>'}`,null);
+}
+
+/* ===== Vistas ===== */
+const V={
+home(){
+  const low=S.items.filter(i=>i.qty<=S.settings.low).length,hc=S.items.some(i=>i.cost!=null);
+  const val=hc?money(S.items.reduce((a,i)=>a+(i.cost||0)*i.qty,0)):'Sin datos';
+  return(storageOK?'':'<div class="card err">Este navegador no permite guardar datos: lo que hagas se perderá al cerrar. Usa «Exportar respaldo».</div>')+
+  `<div class="kpis">${kpi('Prendas en existencia',total())}${kpi('Categorías',new Set(S.items.map(i=>i.cat)).size)}${kpi('Variantes (categoría, talla y color)',S.items.length)}${kpi('Por reponer (bajas o agotadas)',low)}${kpi('Valor al costo (prendas con costo)',val)}</div>`+
+  `<div class="card"><h2>Existencias por categoría</h2>${bars(group('cat'))}</div><div class="card"><h2>Existencias por talla</h2>${bars(group('size'))}</div>`+NOTE;
+},
+inv(){
+  const f=U.f,r=filtered();
+  return`<div class="tools">${F('Buscar','',f.q,'type="search" data-k="f.q" placeholder="Nombre o color"')}${SEL('Categoría','',[['','Todas'],...cats()],f.cat,'data-k="f.cat"')}${SEL('Talla','',[['','Todas'],...SZ],f.size,'data-k="f.size"')}${SEL('Color','',[['','Todos'],...COLORS],f.color,'data-k="f.color"')}${SEL('Ordenar por','',[['name','Nombre'],['cat','Categoría'],['size','Talla'],['qty','Cantidad']],f.sort,'data-k="f.sort"')}<label class="chk"><input type="checkbox" data-k="f.low" ${f.low?'checked':''}> Solo por reponer</label><button class="btn" data-a="add">+ Agregar prenda</button></div>`+
+  T(['Producto','Categoría','Talla','Color','Cantidad','Estado','Acciones'],r.map(i=>[esc(i.name),esc(i.cat),esc(i.size),esc(i.color),
+    `<span class="qty">${ab('minus',i.id,'−','ghost sm',`aria-label="Quitar una unidad de ${esc(label(i))}"`)}<b>${i.qty}</b>${ab('plus',i.id,'+','ghost sm',`aria-label="Agregar una unidad de ${esc(label(i))}"`)}</span>`,
+    status(i),ab('view',i.id,'Ver')+' '+ab('edit',i.id,'Editar')+' '+ab('del',i.id,'Eliminar','bad sm')]),
+  'No hay prendas que coincidan. Cambia los filtros o toca «Agregar prenda».');
+},
+mov(){
+  const m=U.mf,r=sm().filter(x=>(!m.item||x.itemId===m.item)&&(!m.type||x.type===m.type)&&(!m.from||day(x.t)>=m.from)&&(!m.to||day(x.t)<=m.to));
+  return`<div class="tools">${SEL('Producto','',[['','Todos'],...S.items.map(i=>[i.id,label(i)])],m.item,'data-k="mf.item"')}${SEL('Tipo','',[['','Todos'],...Object.entries(TL)],m.type,'data-k="mf.type"')}${F('Desde','',m.from,'type="date" data-k="mf.from"')}${F('Hasta','',m.to,'type="date" data-k="mf.to"')}<button class="btn" data-a="mov">+ Registrar movimiento</button></div>`+
+  T(['Fecha','Tipo','Producto','Antes','Cambio','Después','Motivo'],r.map(x=>[fmt(x.t),TL[x.type]||esc(x.type),esc(x.desc),x.before,(x.delta>0?'+':'')+x.delta,x.after,esc(x.note||'—')]),'Todavía no hay movimientos con estos filtros. Toca «Registrar movimiento» para empezar.');
+},
+sales(){
+  const s=U.sf,r=S.sales.filter(x=>(!s.from||day(x.t)>=s.from)&&(!s.to||day(x.t)<=s.to)),t=sumSales(r);
+  return`<div class="tools">${F('Desde','',s.from,'type="date" data-k="sf.from"')}${F('Hasta','',s.to,'type="date" data-k="sf.to"')}<button class="btn" data-a="sale">+ Registrar venta</button></div>`+
+  `<div class="kpis">${kpi('Prendas vendidas',t.u)}${kpi('Ingresos por ventas',money(t.ing))}${kpi('Costo de mercancía vendida (estimado)',money(t.cost))}${kpi('Margen bruto estimado',money(t.mar))}</div><p class="note">Margen bruto = ingresos − costo de la mercancía. No es ganancia neta porque no descuenta otros gastos.</p>`+
+  T(['Fecha','Prenda','Cant.','Precio','Importe','Costo estimado'],r.map(x=>[fmt(x.t),esc(x.desc),x.qty,money(x.price),money(x.price==null?null:x.price*x.qty),money(x.cost==null?null:x.cost*x.qty)]),'Aún no hay ventas en este periodo. Toca «Registrar venta».');
+},
+rep(){
+  const[t,h,f]=R[U.rep];
+  return`<div class="tools">${SEL('Reporte','',Object.entries(R).map(([k,v])=>[k,v[0]]),U.rep,'data-k="rep"')}<button class="btn ghost" data-a="rcsv">Exportar este reporte (CSV)</button></div><h2>${t}</h2>`+
+  T(h,f().map(r=>r.map(c=>esc(c))),'No hay datos para este reporte todavía.');
+},
+cfg(){
+  return`<div class="card"><h2>Alerta de existencias bajas</h2><div class="tools">${F('Avisar cuando queden esta cantidad o menos','low',S.settings.low,'id="low" type="number" min="0" step="1"')}<button class="btn" data-a="savelow">Guardar umbral</button></div><p class="note">Solo cambia los avisos; no modifica tus cantidades.</p></div>`+
+  `<div class="card"><h2>Respaldo y reportes</h2><div class="tools"><button class="btn" data-a="jx">Exportar respaldo (JSON)</button><button class="btn ghost" data-a="ix">Importar respaldo</button><button class="btn ghost" data-a="cx">Exportar inventario (CSV)</button><button class="btn ghost" data-a="print">Imprimir inventario</button></div>${NOTE}</div>`;
+}};
+const NAV=[['home','❀','Inicio'],['inv','▦','Inventario'],['mov','⇅','Movimientos'],['sales','$','Ventas'],['rep','▤','Reportes'],['cfg','⚙','Configuración']];
+function render(){
+  const a=document.activeElement,k=a&&a.dataset&&a.dataset.k,p=a&&a.selectionStart;
+  $('#app').innerHTML=V[U.view]();
+  $('#nav').innerHTML=NAV.map(([v,i,t])=>`<button data-a="nav" data-v="${v}" ${U.view===v?'aria-current="page"':''}><span aria-hidden="true">${i}</span>${t}</button>`).join('');
+  if(k){const e=document.querySelector(`[data-k="${k}"]`);if(e){e.focus();try{if(p!=null)e.setSelectionRange(p,p)}catch(_){}}}
+}
+
+/* ===== Eventos ===== */
+document.addEventListener('input',e=>{
+  const t=e.target,k=t.dataset&&t.dataset.k;if(!k)return;
+  const v=t.type==='checkbox'?t.checked:t.value,p=k.split('.');
+  if(p.length>1)U[p[0]][p[1]]=v;else U[p[0]]=v;
+  render();
+});
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-a]');if(!b)return;
+  const id=b.dataset.id,it=S.items.find(i=>i.id===id);
+  const quick=d=>{const r=move(id,d>0?'entrada':'salida',1,'Ajuste rápido');r?toast(r,'err'):(save(),render())};
+  const A={
+    nav:()=>{U.view=b.dataset.v;render();scrollTo(0,0)},
+    close:()=>dlg.close(),
+    add:()=>itemForm(),edit:()=>it&&itemForm(it),view:()=>it&&detail(it),
+    del:()=>{if(it&&confirm(`¿Eliminar «${label(it)}»? No se puede deshacer. El historial se conserva.`)){S.items=S.items.filter(i=>i.id!==id);save();render();toast('Registro eliminado')}},
+    plus:()=>quick(1),minus:()=>quick(-1),mov:moveForm,sale:saleForm,
+    savelow:()=>{const v=Number($('#low').value);if($('#low').value.trim()===''||!Number.isInteger(v)||v<0)return toast('Escribe un número entero de 0 o más','err');S.settings.low=v;save();render();toast('Umbral guardado ✓')},
+    jx:()=>dl(`respaldo-inventario-${day(Date.now())}.json`,JSON.stringify(S,null,2),'application/json'),
+    ix:()=>$('#file').click(),
+    cx:()=>dl('inventario.csv',csv(['Nombre','Categoría','Talla','Color','Cantidad','Costo unitario','Precio unitario'],S.items.map(i=>[i.name,i.cat,i.size,i.color,i.qty,i.cost??'',i.price??''])),'text/csv;charset=utf-8'),
+    rcsv:()=>{const[t,h,f]=R[U.rep];dl(`${t}.csv`,csv(h,f()),'text/csv;charset=utf-8')},
+    print:()=>{$('#print').innerHTML=`<h1>Inventario al ${new Date().toLocaleDateString('es-MX')}</h1>`+T(['Producto','Categoría','Talla','Color','Cantidad'],S.items.map(i=>[esc(i.name),esc(i.cat),esc(i.size),esc(i.color),i.qty]),'Sin prendas')+`<p>Total: ${total()} prendas</p>`;window.print()}
+  };
+  A[b.dataset.a]&&A[b.dataset.a]();
+});
+// Importar respaldo: valida todo antes de reemplazar; nunca ejecuta el contenido
+$('#file').addEventListener('change',async e=>{
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  let d;
+  try{d=JSON.parse(await f.text());if(!valid(d))throw 0}catch(_){return toast('El archivo no es un respaldo válido. No se cambió nada.','err')}
+  if(!confirm(`Se reemplazarán TODOS los datos actuales por el respaldo (${d.items.length} variantes, ${d.moves.length} movimientos, ${d.sales.length} ventas). ¿Continuar?`))return;
+  S=d;save();render();toast('Respaldo importado ✓');
+});
+
+S=load();save();render();
+</script>
+</body></html>
